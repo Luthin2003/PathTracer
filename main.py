@@ -4,7 +4,6 @@ import random
 import os
 import pygame as pg
 
-os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0, 30)
 pg.init()
 
 # Colors:
@@ -70,7 +69,14 @@ class Button:
 		self.darkOutlineColor = BLACK
 
 	def update(self, mouse_pos):
+		"""
+		CALL THE FUNCTION EVERY FRAME, BEFORE:
+		- CHECKING IF THE BUTTON HAS BEEN CLICKED
+		- CHECKING IF THE BUTTON IS PRESSED
+		- RENDERING
 
+		TAKES AS ARGUMENT THE LAST MOUSE POSITION
+		"""
 		self.clicked = False
 
 		# CHECKING IF THE BUTTON IS CLICKED
@@ -484,6 +490,7 @@ class DijkstraComponent:
 
 
 
+
 class AlgoComponents:
 	def __init__(self, columns_count, rows_count):
 		self.fathersPos = list()
@@ -495,6 +502,7 @@ class AlgoComponents:
 		self.bfs = BfsComponent(columns_count, rows_count)
 		self.dfs = DfsComponent()
 		self.dijkstra = DijkstraComponent(columns_count, rows_count)
+		
 
 
 class Graph:
@@ -649,59 +657,7 @@ class Graph:
 					x, y = neighbor.get_coordinates()
 					self.safely_change_node_state(x, y, 'IN_QUEUE')
 
-	def make_a_star_step(self):
-		def heuristic(a, b):
-			x1, y1 = a
-			x2, y2 = b
-			return abs(x1 - x2) + abs(y1 - y2)
-
-		if not self.sthHappened:
-			self.sthHappened = True
-			self.algoComponents.aStar.count = 0
-			self.algoComponents.aStar.openSet = PriorityQueue()
-			xs, ys = self.startPos
-			self.algoComponents.aStar.openSet.put((0, self.algoComponents.aStar.count, self.nodes[xs][ys]))
-			self.algoComponents.aStar.gScore = {node: float("inf") for row in self.nodes for node in row}
-			self.algoComponents.aStar.gScore[self.nodes[xs][ys]] = 0
-			self.algoComponents.aStar.fScore = {node: float("inf") for row in self.nodes for node in row}
-			xe, ye = self.endPos
-			temp = heuristic(self.nodes[xs][ys].get_coordinates(), self.nodes[xe][ye].get_coordinates())
-			self.algoComponents.aStar.fScore[self.nodes[xs][ys]] = temp
-			self.algoComponents.aStar.openSetHash = {self.nodes[xs][ys]}
-
-		if not self.algoComponents.aStar.openSet.empty():
-			current = self.algoComponents.aStar.openSet.get()[2]
-			self.algoComponents.aStar.openSetHash.remove(current)
-			self.currentlyConsideredPos = current.get_coordinates()
-
-			if current.get_coordinates() == self.endPos:
-				self.endFound = True
-				return
-
-			for neighbor in current.get_neighbors():
-				xx, yy = neighbor.get_coordinates()
-				temp_g_score = self.algoComponents.aStar.gScore[current] + self.nodes[xx][yy].get_weight()
-
-				if temp_g_score < self.algoComponents.aStar.gScore[neighbor]:
-					self.algoComponents.fathersPos[xx][yy] = current.get_coordinates()
-					self.algoComponents.aStar.gScore[neighbor] = temp_g_score
-					self.algoComponents.aStar.fScore[neighbor] = temp_g_score + heuristic(neighbor.get_coordinates(), self.endPos)
-
-					if neighbor not in self.algoComponents.aStar.openSetHash:
-						self.algoComponents.aStar.count += 1
-						self.algoComponents.aStar.openSet.put(
-							(
-								self.algoComponents.aStar.fScore[neighbor],
-								self.algoComponents.aStar.count,
-								neighbor
-							)
-						)
-						self.algoComponents.aStar.openSetHash.add(neighbor)
-						self.safely_change_node_state(xx, yy, 'IN_QUEUE')
-
-			x, y = current.get_coordinates()
-			self.safely_change_node_state(x, y, 'CLOSED')
-
+	
 	# ACCESSORS:
 	def get_node_coordinates(self, mouse_pos):
 		"""
